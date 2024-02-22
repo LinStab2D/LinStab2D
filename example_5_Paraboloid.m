@@ -1,8 +1,9 @@
 set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex'); set(groot,'defaultTextInterpreter','latex')
 clear variables
-% close all
+close all
 clc
 addpath(genpath('aux_matlab'));
+addpath(genpath('BaseFlows'));
 
 % Physical parameters
 baseFlow.Re     = 5e3;          % Reynolds number
@@ -12,18 +13,18 @@ baseFlow.kappa 	= 1.4;          % heat capacity ratio
 baseFlow.T_0 	= 293.15;       % temperature
 
 % Perturbation & EVP parameters
-freq        = 0;            % frequency
-omega       = freq*2*pi;    % angular frequency
-m           = 5;           % azimuthal wave number
-nEig        = 3;            % Arnoldi method number of eigenvalues
+freq            = 0;            % frequency
+omega           = freq*2*pi;    % angular frequency
+m               = 5;           % azimuthal wave number
+nEig            = 3;            % Arnoldi method number of eigenvalues
 
 % Domain & grid
-Nr          = 100;           % # of grid points (radial)
-Nz          = 100;           % # of grid points (streamwise)
-FDorder     = 4;            % finite difference order of accuracy
+Nr              = 100;           % # of grid points (radial)
+Nz              = 100;           % # of grid points (streamwise)
+FDorder         = 4;            % finite difference order of accuracy
 
 % Flags
-verbose     = true;         % visualize grid, base flow and results
+verbose         = true;         % visualize grid, base flow and results
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Create mesh and obtain differentiation matrices                        %
@@ -40,29 +41,29 @@ yrange          = [ 0 1 ];  % domain range in y
 cmesh           = CreateMesh(xrange,yrange,Nz,Nr,FDorder, ...     
                           y_symmetry,x_periodicity,alphaFilter); %construct mesh
                      
-x   = cmesh.X;           % x,y: Cartesian grid coordinates
+x               = cmesh.X;           % x,y: Cartesian grid coordinates
 % x   = (x.^4).*sign(x)./((x.^4)+.3);
-x   = 1./( 1./(x.^4).*sign(x) + 1./x); x(isnan(x))=0;
-x   = x/max(abs(x(:)));
-y   = cmesh.Y;
-y   = 1-(1-y).^1.4;      % spread points more uniformly on the surface
-y   = 1-(1-y).^1.4;      % spread points more uniformly on the surface
+x               = 1./( 1./(x.^4).*sign(x) + 1./x); x(isnan(x))=0;
+x               = x/max(abs(x(:)));
+y               = cmesh.Y;
+y               = 1-(1-y).^1.4;      % spread points more uniformly on the surface
+y               = 1-(1-y).^1.4;      % spread points more uniformly on the surface
 
 % Grid transformation to parabolic sement in physical domain
 % (   Here an analytical example is used, but X and Y can also be obtained
 %        numerically )
-Lx   = 2.25;              % wall-normal thickness parameter
-Ly   = 1.5;              % Lenght parameter
+Lx              = 2.25;              % wall-normal thickness parameter
+Ly              = 1.5;              % Lenght parameter
 
-x   = x*Lx-0.5;
-y   = y*Ly;
+x               = x*Lx-0.5;
+y               = y*Ly;
 
-z   = (x+1i*y);
-X   = -real(z.^2);      % X,Y: Parabolic grid coordinates
-Y   = -imag(z.^2);
+z               = (x+1i*y);
+X               = -real(z.^2);      % X,Y: Parabolic grid coordinates
+Y               = -imag(z.^2);
 
 %
-mesh    = DeformMesh(cmesh,X,Y);
+mesh            = DeformMesh(cmesh,X,Y);
 
 % Plot meshes in comutational and physical domains
 if verbose
@@ -132,7 +133,7 @@ if verbose
             reshape(mesh.Dy*(baseFlow.W(:)),Nr,Nz)          ,'$\frac{dW}{dy}$';
             reshape(mesh.Dx*(baseFlow.W(:)),Nr,Nz)         ,'$\frac{dW}{dx}$';
             reshape(mesh.Dx*(mesh.Dy*baseFlow.W(:)),Nr,Nz) ,'$\frac{d^2W}{dydx}$'};
-    plotFlow(mesh.X,mesh.Y,vars,4,3,[],'linecolor','none');
+    plotFlow(mesh.X,mesh.Y,vars,4,3);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -144,10 +145,11 @@ end
 
 % Enforce Dirichlet b,c on the top, right and left boundaries, for u,v,w
 % and T
-borders='ltr';  vars = 'uvwT';
-[L0,idx_dirchlet] = BC_Dirichlet(L0,idx,borders,vars);
+borders     = 'ltr';  vars = 'uvwT';
+[L0,idx_dirchlet] ...
+            = BC_Dirichlet(L0,idx,borders,vars);
 
-[W,invW] = GetCompEnergyNorm(mesh,baseFlow,'axy');
+[W,invW]    = GetCompEnergyNorm(mesh,baseFlow,'axy');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Resolvent analysis                                                     %
@@ -167,20 +169,20 @@ B                       = spdiags(B,0,mesh.ngp*5,mesh.ngp*5);
 C                       = B;    
 
 % Compute optimal forcings and responses 
-[S,U,V]                 = resolvent(L0,omega,nEig,W,invW,B,C,mesh.filters);
+[gains,responses,forces]                 = resolvent(L0,omega,nEig,W,invW,B,C,mesh.filters);
 
 %% Plot modes and gains
 if verbose
     figure('name','Mode gains')
-    bar(S);
+    bar(gains);
     xlabel('mode');
     ylabel('gain');
     title('Resolvent gains')
     
     figure('name','Resolvent forcing and response modes')
-    vars = {real(V(idx.u_j,1)) ,'$f_u^{(1)}$'; real(U(idx.u_j,1)) ,'$u^{(1)}$';
-            real(V(idx.u_j,2)) ,'$f_u^{(2)}$'; real(U(idx.u_j,2)) ,'$u^{(2)}$';
-            real(V(idx.u_j,3)) ,'$f_u^{(3)}$'; real(U(idx.u_j,3)) ,'$u^{(3)}$';};
-    plotFlow(mesh.X,mesh.Y,vars,3,2,[],'linecolor','none');
+    vars = {real(forces(idx.u_j,1)) ,'$f_u^{(1)}$'; real(responses(idx.u_j,1)) ,'$u^{(1)}$';
+            real(forces(idx.u_j,2)) ,'$f_u^{(2)}$'; real(responses(idx.u_j,2)) ,'$u^{(2)}$';
+            real(forces(idx.u_j,3)) ,'$f_u^{(3)}$'; real(responses(idx.u_j,3)) ,'$u^{(3)}$';};
+    plotFlow(mesh.X,mesh.Y,vars,3,2);
 
 end

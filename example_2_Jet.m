@@ -3,6 +3,7 @@ clear variables
 close all
 clc
 addpath(genpath('aux_matlab'));
+addpath(genpath('BaseFlows'));
 verbose         = true;
 
 % Physical parameters
@@ -114,7 +115,7 @@ if verbose
             reshape(mesh.Dy*(baseFlow.W(:)),Nr,Nz)         ,'$\frac{dW}{dy}$';
             reshape(mesh.Dx*(baseFlow.W(:)),Nr,Nz)         ,'$\frac{dW}{dx}$';
             reshape(mesh.Dx*(mesh.Dy*baseFlow.W(:)),Nr,Nz) ,'$\frac{d^2W}{dydx}$'};
-    plotFlow(mesh.X,mesh.Y,vars,4,3,[],'linecolor','none');
+    plotFlow(mesh.X,mesh.Y,vars,4,3);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -163,5 +164,5 @@ if verbose
             real(V(idx.u_j,2)) ,'$f_u^{(2)}$'; real(U(idx.u_j,2)) ,'$u^{(2)}$';
             real(V(idx.u_j,3)) ,'$f_u^{(3)}$'; real(U(idx.u_j,3)) ,'$u^{(3)}$';};
         
-    plotFlow(mesh.X,mesh.Y,vars,3,2,[],'linecolor','none');
+    plotFlow(mesh.X,mesh.Y,vars,3,2);
 end

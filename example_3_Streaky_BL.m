@@ -3,13 +3,14 @@ clear
 close all
 clc
 addpath(genpath('aux_matlab'));
+addpath(genpath('BaseFlows'));
 
 % Physical parameters
 baseFlow.Re     = 28000;          % Reynolds number
 baseFlow.Ma     = 6;          % Mach number
 baseFlow.Pr     = 0.7;          % Prandtl number
-baseFlow.kappa 	= 1.4;          % heat capacity ratio
-baseFlow.T_0 	= 273.15 ;       % temperature
+baseFlow.kappa  = 1.4;          % heat capacity ratio
+baseFlow.T_0    = 273.15 ;       % temperature
 
 
 % Domain lenghts
@@ -136,7 +137,7 @@ end
 if temporalAna
 
     % Get linear opreator
-    [L,idx] 	= GetLinProblem(mesh,baseFlow,'2D',alpha,floquetExp);
+    [L,idx]     = GetLinProblem(mesh,baseFlow,'2D',alpha,floquetExp);
     % Enforce Dirichlet b,c on the top, right and left boundaries, for u,v,w
     % and T
     borders='tb';  vars = 'uvwT';
@@ -213,7 +214,7 @@ end
 %% Spatial Stability Analysis
 if spatialAna
     for wi = linspace(0,0.03,10)
-    [Lc,Lw,R,idx] 	= GetSpatialLinProblem(mesh,baseFlow,'2D',floquetExp);
+    [Lc,Lw,R,idx]   = GetSpatialLinProblem(mesh,baseFlow,'2D',floquetExp);
 
     % Enforce Dirichlet bc on the top, right and left boundaries, for u,v,w
     % and T

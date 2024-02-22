@@ -1,8 +1,9 @@
 clear all
 set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex'); set(groot,'defaultTextInterpreter','latex')
-% close all
-% clc
+close all
+clc
 addpath(genpath('aux_matlab'));
+addpath(genpath('BaseFlows'));
 
 % Physical parameters
 baseFlow.Re     = 1500;     % Reynolds number
@@ -12,17 +13,17 @@ baseFlow.kappa 	= 1.4;      % heat capacity ratio
 baseFlow.T_0 	= 300.;     % temperature
 
 % Perturbation & EVP parameters
-omega_target= 1.5+1.i;      % value around which the eigenvalues will be seek
-beta        = 0;            % azimuthal wave number
-nEig        = 50;           % Arnoldi method number of eigenvalues
+omega_target    = 1.5+1.i;      % value around which the eigenvalues will be seek
+beta            = 0;            % azimuthal wave number
+nEig            = 50;           % Arnoldi method number of eigenvalues
 
 % Domain & grid
-Nx_cavity   = 80;           % # of grid points in the cavity (stream wise)
-Ny_cavity   = 50;           % # of grid points in the cavity (wall normal)
-FDorder     = 4;            % finite difference order of accuracy
+Nx_cavity       = 80;           % # of grid points in the cavity (stream wise)
+Ny_cavity       = 50;           % # of grid points in the cavity (wall normal)
+FDorder         = 4;            % finite difference order of accuracy
 
 % Flags
-verbose     = true;         % visualize grid, base flow and results
+verbose         = true;         % visualize grid, base flow and results
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Create mesh and obtain differentiation matrices                        %
@@ -46,41 +47,41 @@ cmesh           = CreateMesh(xrange,yrange,Nx,Ny,FDorder, ...
                             y_symmetry,x_periodicity,alpha); %construct mesh
                      
 % Mash points outside the domain
-x   = cmesh.X;           
-y   = cmesh.Y;
-mask = (y<0) & ((x<.34) | (x>2.34) ) ;  
-mesh = MeshMask(cmesh,mask);
+x               = cmesh.X;           
+y               = cmesh.Y;
+mask            = (y<0) & ((x<.34) | (x>2.34) ) ;  
+mesh            = MeshMask(cmesh,mask);
 
 %% Mesh Deformation
-strech_n=3;                     % polinomial strech order
+strech_n        = 3;                     % polinomial strech order
 % ---- Deformation in Y                         ----
-y   = mesh.Y;
+y               = mesh.Y;
 % ---- Concentrate points on the shear layer    ----
-a=.5;                           % mesh derivative at the center
-y=(y.^3+a*y)/(1+a);             % map function that concentrates points near y=0
+a               = 0.5;                   % mesh derivative at the center
+y               = (y.^3+a*y)/(1+a);      % map function that concentrates points near y=0
 % ---- Stretch mesh on the top border           ----
-strech_y=0;                     % move points with y>strech_y
-strech_L=2;                     % Distance on which point will be streched
+strech_y        = 0;                     % move points with y>strech_y
+strech_L        = 2;                     % Distance on which point will be streched
 
-p = y>strech_y;                 % indices for the points which will be moved
+p               = y>strech_y;            % indices for the points which will be moved
 y(p)=y(p)+ strech_L*(  (y(p)-strech_y)/(max(y(p))-strech_y) ).^strech_n;
 
-mesh = DeformMesh(mesh,[],y);   % apply mesh deformation in y
+mesh            = DeformMesh(mesh,[],y); % apply mesh deformation in y
 
     
 %  --- Deformation in X ---
-strech_Lx =   1;                 % Distance on which point will be streched
-x = mesh.X;
+strech_Lx       =   1;                   % Distance on which point will be streched
+x               = mesh.X;
 % ---- Stretch mesh on the left border          ----
-% strech_xl =-0.5;                 % move points with y>strech_y
-% p = x<strech_xl;                 % indices for the points which will be moved
+% strech_xl =-0.5;                       % move points with y>strech_y
+% p = x<strech_xl;                       % indices for the points which will be moved
 % x(p)=x(p) -  strech_Lx*(  (x(p)-strech_xl)/(min(x(p))-strech_xl) ).^strech_n;
 % ---- Stretch mesh on the right border          ----
-strech_xr = 2.8;                 % move points with y>strech_y
-p = x>strech_xr;                 % indices for the points which will be moved
-x(p)=x(p) +  strech_Lx*(  (x(p)-strech_xr)/(max(x(p))-strech_xr) ).^strech_n;
+strech_xr       = 2.8;                   % move points with y>strech_y
+p               = x>strech_xr;                 % indices for the points which will be moved
+x(p)            = x(p) +  strech_Lx*((x(p)-strech_xr)/(max(x(p))-strech_xr)).^strech_n;
 
-mesh = DeformMesh(mesh,x,[]);    % apply mesh deformation in x
+mesh            = DeformMesh(mesh,x,[]); % apply mesh deformation in x
 
 % If, instead of the above, we used 
 % mesh = DeformMesh(mesh,x,y);    
@@ -124,8 +125,8 @@ baseFlow    = example_4_readbaseflow(mesh,baseFlow); % Custumize the function to
 %% Sponge                                                                 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sponge defined in the origial, non-deformed, mesh.
-x = mesh.X;
-y = mesh.Y;
+x           = mesh.X;
+y           = mesh.Y;
 
 xs_trans    = .5;  xs_offset =  .5;
 ys_trans    = .5 ; ys_offset =  1;
@@ -227,7 +228,7 @@ if verbose
                 real(U(idx.w_j  )) ,'$w$'; 
                 real(U(idx.T_j  )) ,'$T$' };
         title(['$\omega = ' num2str(omega(iiplot)) '$, Direct']);
-        axs = plotFlow(mesh.X,mesh.Y,vars,3,2,mesh.usedInd,101,'linecolor','none');
+        axs = plotFlow(mesh.X,mesh.Y,vars,3,2,mesh.usedInd);
     end
     for iiplot=iplot_adj'
         U=V_adj(:,iiplot);
@@ -238,6 +239,6 @@ if verbose
                 real(U(idx.w_j  )) ,'$w$'; 
                 real(U(idx.T_j  )) ,'$T$' };
         title(['$\omega^* =' num2str(conj(omega_adj(iiplot))) '$, Adjoint']);
-        axs = plotFlow(mesh.X,mesh.Y,vars,3,2,mesh.usedInd,101,'linecolor','none');  
+        axs = plotFlow(mesh.X,mesh.Y,vars,3,2,mesh.usedInd);  
     end
 end

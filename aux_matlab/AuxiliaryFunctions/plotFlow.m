@@ -13,8 +13,8 @@ function [axs] = plotFlow(X,Y,vars,nr,nc,usedInd,varargin)
     %                       points (e.g., when masks are used), provide 
     %                       usedInd (typically mesh.usedInd to indicate
     %                       the grid points used.
-    %   varargin (optional): extra arguments to contourf, used to create
-    %                        plots. E.g. 'colorline','none'.
+    %   varargin (optional): extra arguments to pcolor, used to create
+    %                        plots.
     % Outputs
     %   axs     : list with references to each of the subplots axis.
     
@@ -36,17 +36,10 @@ function [axs] = plotFlow(X,Y,vars,nr,nc,usedInd,varargin)
 
         var(usedInd) = vars{i,1};
 
-        contour_varargin = {X,Y,var,varargin{:}};
-
-        contourf(contour_varargin{:}); 
-    %     contourf(X,Y,var,'linecolor','none',varargin); 
-        shading interp
-    %     pcolor(X,Y,var); shading interp
+        pcolor(X,Y,var); shading interp
         colorbar;
-    %     axis equal tight
         title(vars{i,2});
     end
-    
-    
+        
     warning('on','MATLAB:contour:ConstantData'); % Re-enables warning
     fprintf( ' Done in %.0f seconds.\n',toc);
