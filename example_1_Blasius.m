@@ -60,6 +60,23 @@ baseFlow        = example_1_readbaseflow(X,Y,baseFlow);
 baseFlow        = sutherland_air(baseFlow);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Sponge                                                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sponge defined in the origial, non-deformed, mesh.
+x = mesh.X;
+y = mesh.Y;
+
+xs_trans    = .02;  xs_offset =  .02;
+ys_trans    = .01 ; ys_offset =  .01;
+spongeAmp   = 5;
+ind = mesh.usedInd;
+
+mesh.sponge = nan(size(mesh.X));
+mesh.sponge(ind) = ...
+        spongeAmp/2*max(tanh( ( y(ind)-max(y(:)) + ys_offset )/ys_trans)+1, ...
+                        tanh(-( x(ind)-min(x(:)) - xs_offset)/xs_trans)+1 + ...
+                        tanh( ( x(ind)-max(x(:)) + xs_offset)/xs_trans)+1  );
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Visualize base flow                                                    %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if verbose
@@ -69,8 +86,9 @@ if verbose
             baseFlow.V,'$V$';
             baseFlow.W,'$W$';
             baseFlow.T,'$T$';           
-            baseFlow.MU,'$\mu$';};
-    plotFlow(mesh.X,mesh.Y,vars,3,2);
+            baseFlow.MU,'$\mu$';
+            mesh.sponge,'Sponge';};
+    plotFlow(mesh.X,mesh.Y,vars,4,2);
     drawnow
 end
 
