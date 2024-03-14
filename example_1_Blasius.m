@@ -3,6 +3,7 @@ clear variables
 close all
 clc
 addpath(genpath('aux_matlab'));
+addpath(genpath('BaseFlows'));
 verbose         = true;
 
 % Physical parameters
