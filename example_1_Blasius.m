@@ -139,7 +139,10 @@ if verbose
     vars = {real(forces(idx.u_j,1)) ,'$f_u^{(1)}$'; real(responses(idx.u_j,1)) ,'$u^{(1)}$';
             real(forces(idx.u_j,2)) ,'$f_u^{(2)}$'; real(responses(idx.u_j,2)) ,'$u^{(2)}$';
             real(forces(idx.u_j,3)) ,'$f_u^{(3)}$'; real(responses(idx.u_j,3)) ,'$u^{(3)}$';};
-    plotFlow(mesh.X,mesh.Y,vars,3,2);
+    axs = plotFlow(mesh.X,mesh.Y,vars,3,2);
+    for i=1:length(axs)
+        ylim(axs(i),[0,0.01]); %sets y scale for all plots
+    end
 end
 
 
