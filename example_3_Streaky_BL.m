@@ -18,13 +18,13 @@ Lx = pi ;
 Ly = 5  ;
 
 % Perturbation & EVP parameters
-freq        = 0;            % frequency
-omega       = freq*2*pi;    % angular frequency for spatial stability
-alpha       = .6283;        % stream-wize wavenumber for temporal stability
-nEig        = 50;           % Arnoldi method number of eigenvalues
+freq            = 0;            % frequency
+omega_spatialAn = freq*2*pi;    % angular frequency for spatial stability
+alpha_tempAn    = .6283;        % stream-wize wavenumber for temporal stability
+nEig            = 50;           % Arnoldi method number of eigenvalues
 
-nPeriods    = 2  ;           % 0 for periodic solution, 
-                            % 1/n for a solution periodic in n domains.
+nPeriods    = 2  ;              % 0 for periodic solution, 
+                                
 if nPeriods==0 ; floquetExp=0;
 else ; floquetExp  = 2*pi/(Lx*nPeriods) ;          % Floquet exponent      
 end
@@ -137,7 +137,7 @@ end
 if temporalAna
 
     % Get linear opreator
-    [L,idx]     = GetLinProblem(mesh,baseFlow,'2D',alpha,floquetExp);
+    [L,idx]     = GetLinProblem(mesh,baseFlow,'2D',alpha_tempAn,floquetExp);
     % Enforce Dirichlet b,c on the top, right and left boundaries, for u,v,w
     % and T
     borders='tb';  vars = 'uvwT';
@@ -150,15 +150,11 @@ if temporalAna
 
     % Remove constrains lines/rows and get L1 : \omega \hat q = L1 \hat q
     L1 = L/-1i;
-%     L1(idx_dirchlet,:)=0;
-%     L1(:,idx_dirchlet)=0;
-%     L1(idx_dirchlet,idx_dirchlet) = -1e4;
 
     %setup eigs options
     opts.tol    = 1e-8;
     opts.disp   = 2;
     opts.p      = 1500;
-
 
     % compute eigs
     tic;
@@ -219,13 +215,21 @@ if spatialAna
     % Enforce Dirichlet bc on the top, right and left boundaries, for u,v,w
     % and T
     borders='tb';  vars = 'uvwT';
-%     [~,idx_dirchlet] = BC_Dirichlet(L,idx,borders,vars);
-    % use most unstable mode from temporal analysis for validation. Spatial
-    % analysis should yieald a mode with alpha corresponding to the input
-    % of the temporal analysis
-    w = real(omega(iplot(1)))+wi*1i; 
     
-    alpha_target = alpha;   % target alpha (around which we look for modes)
+    if exists(omega)
+        % use most unstable mode from temporal analysis for validation. Spatial
+        % analysis should yieald a mode with alpha corresponding to the input
+        % of the temporal analysis
+        w = real(omega(iplot(1)))+wi*1i; 
+    else
+        %if temporal analysis was not performed, use the omega value
+        %provided on the top of this file
+        w = omega_spatialAn;
+    end
+    
+    % Use the value of alpha used in the temporal analysis as target
+    % (seachers for corresponidng modes between the two analysis types)
+    alpha_target = alpha_tempAn;  
     L = Lc+Lw*w ;
     [L,R,~] = BC_Dirichlet_SpatialStability(L,R,idx,borders,vars);
 
@@ -236,12 +240,31 @@ if spatialAna
         figure('name','Spatial spectra')
             plot(real(alphas),imag(alphas),'ob');
             hold on;
-            plot(real(alpha),imag(alpha),'r^','markerSize',15);
+            plot(real(alpha_tempAn),imag(alpha_tempAn),'r^','markerSize',15);
             xlabel('$\alpha_r$');
             ylabel('$\alpha_i$');
             legend('Spatial spectra','target');
             grid on;
             title(sprintf('wi=%0.4f',wi))
     end
+    
+    
+    
+    [~,iplot] = sort(abs(alphas),'ascend');
+    iplot=iplot(1:5);
+    
+    for iiplot=iplot'
+            U=V(:,iiplot);
+            figure('name',['Eigenmode alpha = ' num2str(alphas(iiplot),'%.3f')])
+            vars = {real(U(idx.rho_j(1:end/2))) ,'$\rho$'; 
+                    real(U(idx.u_j(1:end/2)  )) ,'$u$'; 
+                    real(U(idx.v_j(1:end/2)  )) ,'$v$'; 
+                    real(U(idx.w_j(1:end/2)  )) ,'$w$'; 
+                    real(U(idx.T_j(1:end/2)  )) ,'$T$' };
+            title(['$\alpha' num2str(alphas(iiplot)) '$']);
+            plotFlow(mesh.X,mesh.Y,vars,4,3);
+           
+    end
+    
 end
 end
