@@ -1,4 +1,4 @@
-function [L0,index_set] = BC_Dirichlet(L0,idx,borders,variables)   
+function [L0,index_set] = BC_Dirichlet(L0,idx,borders,variables,penalty)   
     % L0,index_set] = SetBoundaryConditions(L0,idx,borders,variables)   
     % Imposes Dirichllet boundary conditions on L0 at the selected borders
     % for the choosen variables
@@ -12,11 +12,14 @@ function [L0,index_set] = BC_Dirichlet(L0,idx,borders,variables)
     %   variables   : string array listing the variables to which the b.c. 
     %                 are to te applied. Options, 'ruvwT', for density 
     %                 (rho), the u,v,w velocities and temperature.
+    %   penalty     : penalty value used to impose bc.
     % Outputs: 
     %   L0          : linear operator with Dirichlet b.c. on the selected
     %                 dofs: L0(index_set,index_set)= I 
     %   index_set   : ids of the dofs where b.c. were applied.
     %   
+
+    if ~exist('penalty'); penalty=1e4; end
 
     fprintf( '--- Applying dirichlet bondary conditions...'); tic();
 
@@ -34,7 +37,7 @@ function [L0,index_set] = BC_Dirichlet(L0,idx,borders,variables)
     index_set= unique(index_set(:));
     L0(index_set, :) = 0;
     L0(:, index_set) = 0;
-    L0(index_set, index_set)   = eye(length(index_set))*1e4;
+    L0(index_set, index_set)   = speye(length(index_set))*penalty;
 
 
 fprintf( ' Done in %.0f seconds.\n',toc); 
