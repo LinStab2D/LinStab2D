@@ -45,4 +45,4 @@ To overcome this limitation, the system needs to be expanded to represent the co
 # Citing the code
 When using the code, please cite: 
 
-> TO BE ADDED
+> Martini, E., Schmidt, O. Linstab2D: stability and resolvent analysis of compressible viscous flows in MATLAB. Theor. Comput. Fluid Dyn. (2024). [https://doi.org/10.1007/s00162-024-00706-0](https://link.springer.com/article/10.1007/s00162-024-00706-0)
