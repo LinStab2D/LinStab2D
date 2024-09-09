@@ -94,8 +94,8 @@ function  mesh = AddDW2mesh(mesh)
             end
             
              if useStandard_DF
-                [Dx_1D ,~] = getNonCompactFDmatrix(NX,dx,1,fd_order);
-                [D2x_1D,~] = getNonCompactFDmatrix(NX,dx,2,fd_order);
+                [Dx_1D ,~] = getNonCompactFDmatrix(NX,dx,1,FDorder_curr);
+                [D2x_1D,~] = getNonCompactFDmatrix(NX,dx,2,FDorder_curr);
             end
             
             if useSBP_FD                
@@ -148,11 +148,11 @@ function  mesh = AddDW2mesh(mesh)
             end
                 
             if useStandard_DF
-                [Dy_1D ,~] = getNonCompactFDmatrix(Ny,dy,1,fd_order);
-                [D2y_1D,~] = getNonCompactFDmatrix(Ny,dy,2,fd_order);
+                [Dy_1D ,~] = getNonCompactFDmatrix(Ny,dy,1,FDorder_curr);
+                [D2y_1D,~] = getNonCompactFDmatrix(Ny,dy,2,FDorder_curr);
 
-                [Dy_1D_ext ,~] = getNonCompactFDmatrix(Ny*2,dy,1,fd_order);
-                [D2y_1D_ext,~] = getNonCompactFDmatrix(Ny*2,dy,2,fd_order);
+                [Dy_1D_ext ,~] = getNonCompactFDmatrix(Ny*2,dy,1,FDorder_curr);
+                [D2y_1D_ext,~] = getNonCompactFDmatrix(Ny*2,dy,2,FDorder_curr);
                 
                 flip2= @(A)flip(A,2);
                 Dy_1D_sym   = Dy_1D_ext (end/2+1:end,end/2+1:end)   + flip2(Dy_1D_ext (end/2+1:end,1:end/2));
