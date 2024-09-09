@@ -1,5 +1,8 @@
 function  mesh = AddDW2mesh(mesh)
 %CREATEDW Summary of this function goes here
+    useStandard_DF = mesh.FDorder<0;
+    useSBP_FD      = mesh.FDorder>0;
+    
 %   Detailed explanation goes here
     if ~exist('FDorder')
         if isfield(mesh,'FDorder')
@@ -91,9 +94,16 @@ function  mesh = AddDW2mesh(mesh)
                 FDorder_curr=FDorder;
             end
             
-            [   Dx_1D     ,D2x_1D     , ...
-                ~         ,     ~     , ...
-                ~         ,     ~      ] = Dmats_SBP(NX,dx,FDorder_curr);
+             if useStandard_DF
+                [Dy_1D ,~] = getNonCompactFDmatrix(Ny,dy,1,fd_order);
+                [D2y_1D,~] = getNonCompactFDmatrix(Ny,dy,2,fd_order);
+            end
+            
+            if useSBP_FD                
+                [   Dx_1D     ,D2x_1D     , ...
+                    ~         ,     ~     , ...
+                    ~         ,     ~      ] = Dmats_SBP(NX,dx,FDorder_curr);
+            end
         
             dom_pos = pos(dom);
             Dx      (dom_pos,dom_pos) = Dx_1D        ;
@@ -138,10 +148,27 @@ function  mesh = AddDW2mesh(mesh)
                 FDorder_curr=FDorder;
             end
                 
-            [   Dy_1D      , D2y_1D     , ...
-                Dy_1D_sym  , Dy_1D_asym , ...
-                D2y_1D_sym , D2y_1D_asym ] = Dmats_SBP(Ny,dy,FDorder_curr);
-        
+            if useStandard_DF
+                [Dy_1D ,~] = getNonCompactFDmatrix(Ny,dy,1,fd_order);
+                [D2y_1D,~] = getNonCompactFDmatrix(Ny,dy,2,fd_order);
+
+                [Dy_1D_ext ,~] = getNonCompactFDmatrix(Ny*2,dy,1,fd_order);
+                [D2y_1D_ext,~] = getNonCompactFDmatrix(Ny*2,dy,2,fd_order);
+                
+                flip2= @(A)flip(A,2);
+                Dy_1D_sym   = Dy_1D_ext (end/2+1:end,end/2+1:end)   + flip2(Dy_1D_ext (end/2+1:end,1:end/2));
+                D2y_1D_sym  = D2y_1D_ext(end/2+1:end,end/2+1:end)   + flip2(D2y_1D_ext(end/2+1:end,1:end/2));
+
+                Dy_1D_asym  = Dy_1D_ext(end/2+1:end,end/2+1:end)    - flip2(Dy_1D_ext (end/2+1:end,1:end/2));
+                D2y_1D_asym = D2y_1D_ext(end/2+1:end,end/2+1:end)   - flip2(D2y_1D_ext(end/2+1:end,1:end/2));
+            end
+            
+            if useSBP_FD
+                [   Dy_1D      , D2y_1D     , ...
+                    Dy_1D_sym  , Dy_1D_asym , ...
+                    D2y_1D_sym , D2y_1D_asym ] = Dmats_SBP(Ny,dy,FDorder_curr);
+            end
+            
             dom_pos = pos(dom);
             
             Dy      (dom_pos,dom_pos) = Dy_1D        ;
