@@ -94,8 +94,8 @@ function  mesh = AddDW2mesh(mesh)
             end
             
              if useStandard_DF
-                [Dy_1D ,~] = getNonCompactFDmatrix(Ny,dy,1,fd_order);
-                [D2y_1D,~] = getNonCompactFDmatrix(Ny,dy,2,fd_order);
+                [Dx_1D ,~] = getNonCompactFDmatrix(NX,dx,1,fd_order);
+                [D2x_1D,~] = getNonCompactFDmatrix(NX,dx,2,fd_order);
             end
             
             if useSBP_FD                
