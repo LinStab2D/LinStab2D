@@ -1,12 +1,11 @@
 function  mesh = AddDW2mesh(mesh)
 %CREATEDW Summary of this function goes here
-    useStandard_DF = mesh.FDorder<0;
-    useSBP_FD      = mesh.FDorder>0;
-    
 %   Detailed explanation goes here
     if ~exist('FDorder')
         if isfield(mesh,'FDorder')
-            FDorder=mesh.FDorder;
+            useStandard_DF = mesh.FDorder<0;
+            useSBP_FD      = mesh.FDorder>0;
+            FDorder = abs(mesh.FDorder);
         else
             error('CreateDW : FD order not defined as an argument nor specified in the mesh object');
         end
