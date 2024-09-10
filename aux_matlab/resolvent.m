@@ -78,8 +78,8 @@ end
 % Function handle for resolvent operator H and Hermitian H*H
 % H           = @(v) FILTER   (C *(qq *(UU \(LL \(pp *(rr \(B *FILTER   (v))))))));
 % Htr         = @(v) FILTER_ct(B'*(rr'\(pp'*(LL'\(UU'\(qq'*(C'*FILTER_ct(v))))))));
-H           = @(v) FILTER   (C *R(FILTER(v)));
-Htr         = @(v) FILTER_ct(B'*R_T(C'*FILTER_ct(v)));
+H           = @(v) FILTER   (C *R(  B * FILTER(v)));
+Htr         = @(v) FILTER_ct(B'*R_T(C'* FILTER_ct(v)));
 HtrH        = @(v) invW*Htr(W*H(v));
 
 % 'eigs' parameters
