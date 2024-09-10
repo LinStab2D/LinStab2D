@@ -70,8 +70,8 @@ function mesh = CreateMesh(xrange,yrange,Nx,Ny,FDorder,y_symmetry,x_periodicity,
     else
         mesh.alpha_filter=alpha_filter;        
     end
-    mesh.alpga_filter=alpha_filter;
-    [filter,filter_ct]  = GetFilter(mesh,alpha_filter);
+
+    [filter,filter_ct]  = GetFilter(mesh,mesh.alpha_filter);
     mesh.filters.filter    =  filter    ;
     mesh.filters.filter_ct =  filter_ct ;
     
