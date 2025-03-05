@@ -1,7 +1,9 @@
-function [DR,D2R,DZ,D2Z,D2RZ,D2ZR] = CreateDiffMatrices_Axy(mesh,m)
+function [DR,D2R,DZ,D2Z,D2RZ,D2ZR] = CreateDiffMatrices_Axy(mesh,m,mode)
     % [DR,D2R,DZ,D2Z] = CreateDiffMatrices_Axy(mesh,m)
     % Create global differentiatial matricies to be used in an axysimmetric
     % analysis. 
+    if ~exist('mode','var'); mode='c' ;end
+
     tic
     pipeBC=false;
 
@@ -16,7 +18,7 @@ function [DR,D2R,DZ,D2Z,D2RZ,D2ZR] = CreateDiffMatrices_Axy(mesh,m)
 
     Dz = mesh.Dx;
     Dr = mesh.Dy;
-    Dr_symm  = mesh.Dy_symm;       
+    Dr_symm  = mesh.Dy_symm;
     Dr_asymm = mesh.Dy_asymm;     
 
     D2z         = mesh.D2x;
@@ -37,25 +39,46 @@ function [DR,D2R,DZ,D2Z,D2RZ,D2ZR] = CreateDiffMatrices_Axy(mesh,m)
     Z = 0*speye(ngp,ngp); % need a zero diagonal sparse matrix... is there a better way?
 
     % r dependent derivatives (depend on symmetry)
-    if  m==0
-        DR   = blkdiag(Dr_symm,Dr_asymm,Dr_asymm,Dr_symm,Dr_symm);
-        D2R  = blkdiag(D2r_symm,D2r_asymm,D2r_asymm,D2r_symm,D2r_symm);
-        D2RZ = blkdiag(D2rz_symm,D2rz_asymm,D2rz_asymm,D2rz_symm,D2rz_symm);
-        D2ZR = blkdiag(D2zr_symm,D2zr_asymm,D2zr_asymm,D2zr_symm,D2zr_symm);
-    elseif m==1
-        DR   = blkdiag(Dr_asymm,Dr_symm,Dr_symm,Dr_asymm,Dr_asymm);
-        D2R  = blkdiag(D2r_asymm,D2r_symm,D2r_symm,D2r_asymm,D2r_asymm);
-        D2RZ = blkdiag(D2rz_asymm,D2rz_symm,D2rz_symm,D2rz_asymm,D2rz_asymm);
-        D2ZR = blkdiag(D2zr_asymm,D2zr_symm,D2zr_symm,D2zr_asymm,D2zr_asymm);
-    elseif m>=2
-        DR   = blkdiag(Dr_asymm,Dr_asymm,Dr_asymm,Dr_asymm,Dr_asymm);
-        D2R  = blkdiag(D2r_asymm,D2r_asymm,D2r_asymm,D2r_asymm,D2r_asymm);
-        D2RZ = blkdiag(D2rz_asymm,D2rz_asymm,D2rz_asymm,D2rz_asymm,D2rz_asymm);
-        D2ZR = blkdiag(D2zr_asymm,D2zr_asymm,D2zr_asymm,D2zr_asymm,D2zr_asymm);
+    if mode=='i'
+        % Incompressible - [vr, vtheta, vz, p]
+        if  m==0
+            DR   = blkdiag(Dr_asymm,Dr_asymm,Dr_symm,Dr_symm);
+            D2R  = blkdiag(D2r_asymm,D2r_asymm,D2r_symm,D2r_symm);
+        elseif abs(m)==1
+            DR   = blkdiag(Dr_symm,Dr_symm,Dr_asymm,Dr_asymm);
+            D2R  = blkdiag(D2r_symm,D2r_symm,D2r_asymm,D2r_asymm);
+        elseif abs(m)>=2
+            DR   = blkdiag(Dr_asymm,Dr_asymm,Dr_asymm,Dr_asymm);
+            D2R  = blkdiag(D2r_asymm,D2r_asymm,D2r_asymm,D2r_asymm);
+        end
+        % z dependent derivatives (do not depend on symmetry)
+        DZ      = kron(speye(4,4),Dz);
+        D2Z     = kron(speye(4,4),D2z);
+        D2RZ = 0;
+        D2ZR = 0;
+    else
+        % Compressible - [rho, vr, vtheta, vz, T]
+        if  m==0
+            DR   = blkdiag(Dr_symm,Dr_asymm,Dr_asymm,Dr_symm,Dr_symm);
+            D2R  = blkdiag(D2r_symm,D2r_asymm,D2r_asymm,D2r_symm,D2r_symm);
+            D2RZ = blkdiag(D2rz_symm,D2rz_asymm,D2rz_asymm,D2rz_symm,D2rz_symm);
+            D2ZR = blkdiag(D2zr_symm,D2zr_asymm,D2zr_asymm,D2zr_symm,D2zr_symm);
+        elseif abs(m)==1
+            DR   = blkdiag(Dr_asymm,Dr_symm,Dr_symm,Dr_asymm,Dr_asymm);
+            D2R  = blkdiag(D2r_asymm,D2r_symm,D2r_symm,D2r_asymm,D2r_asymm);
+            D2RZ = blkdiag(D2rz_asymm,D2rz_symm,D2rz_symm,D2rz_asymm,D2rz_asymm);
+            D2ZR = blkdiag(D2zr_asymm,D2zr_symm,D2zr_symm,D2zr_asymm,D2zr_asymm);
+        elseif abs(m)>=2
+            DR   = blkdiag(Dr_asymm,Dr_asymm,Dr_asymm,Dr_asymm,Dr_asymm);
+            D2R  = blkdiag(D2r_asymm,D2r_asymm,D2r_asymm,D2r_asymm,D2r_asymm);
+            D2RZ = blkdiag(D2rz_asymm,D2rz_asymm,D2rz_asymm,D2rz_asymm,D2rz_asymm);
+            D2ZR = blkdiag(D2zr_asymm,D2zr_asymm,D2zr_asymm,D2zr_asymm,D2zr_asymm);
+        end
+        % z dependent derivatives (do not depend on symmetry)
+        DZ      = kron(speye(5,5),Dz);
+        D2Z     = kron(speye(5,5),D2z);        
     end
 
-    % z dependent derivatives (do not depend on symmetry)
-    DZ      = kron(speye(5,5),Dz);
-    D2Z     = kron(speye(5,5),D2z);
+    
 
 
