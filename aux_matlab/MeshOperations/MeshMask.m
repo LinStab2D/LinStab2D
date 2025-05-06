@@ -36,7 +36,7 @@ function maskedMesh = MeshMask(mesh,mask)
     maskedMesh.idx.mi = edges;
     
     %% Update filter
-    if mesh.alpga_filter=='none'
+    if mesh.alpha_filter=='none'
         %no filtering
         filter    = @(x) x;
         filter_ct = @(x) x;        
